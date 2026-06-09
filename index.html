@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ============================================
+       ✏️  可以修改的設定區
+  ============================================ -->
+  <title>My Blog</title>
+
+  <style>
+    /* ============================================
+       🎨 顏色與字體 — 在這裡修改主題
+    ============================================ */
+    :root {
+      --bg: #ffffff;
+      --surface: #f8f7f4;
+      --border: rgba(0,0,0,0.1);
+      --text: #1a1a1a;
+      --text-muted: #666;
+      --text-hint: #999;
+      --accent: #1a1a1a;      /* 強調色（導覽列底線、按鈕）改這裡 */
+      --tag-bg: #f0eeeb;
+      --danger: #c0392b;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a1a;
+        --surface: #242424;
+        --border: rgba(255,255,255,0.12);
+        --text: #f0eeeb;
+        --text-muted: #aaa;
+        --text-hint: #666;
+        --accent: #f0eeeb;
+        --tag-bg: #2e2e2e;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, "Noto Sans TC", BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ============================================
+       📐 版面
+    ============================================ */
+    .container {
+      max-width: 720px;     /* 網站最大寬度，可改 */
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* ============================================
+       🏷️  Header — 修改 blog 名稱在 HTML 下方
+    ============================================ */
+    header {
+      padding: 3rem 0 1.5rem;
+      border-bottom: 0.5px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    header p.desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    nav {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1.2rem;
+    }
+
+    nav a {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding-bottom: 2px;
+      border-bottom: 1.5px solid transparent;
+      cursor: pointer;
+    }
+
+    nav a.active, nav a:hover {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ============================================
+       📋 文章列表
+    ============================================ */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .topbar span {
+      font-size: 13px;
+      color: var(--text-hint);
+    }
+
+    .posts { display: flex; flex-direction: column; gap: 1.2rem; }
+
+    .post-card {
+      border: 0.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      background: var(--bg);
+      transition: border-color 0.15s;
+    }
+
+    .post-card:hover { border-color: var(--text-muted); }
+
+    .post-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--tag-bg);
+      color: var(--text-muted);
+    }
+
+    .post-date {
+      font-size: 12px;
+      color: var(--text-hint);
+    }
+
+    .post-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .post-excerpt {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .post-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 1rem;
+    }
+
+    /* ============================================
+       🔘 按鈕
+    ============================================ */
+    .btn {
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 7px;
+      border: 0.5px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.1s;
+    }
+
+    .btn:hover { background: var(--surface); color: var(--text); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover { opacity: 0.8; color: var(--bg); }
+
+    .btn-danger:hover {
+      background: #fdf0ef;
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    /* ============================================
+       🪟 Modal（新增 / 編輯視窗）
+    ============================================ */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-bg.open { display: flex; }
+
+    .modal {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+      width: min(560px, 94vw);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group { margin-bottom: 1rem; }
+
+    .form-group label {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 0.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .form-group textarea {
+      min-height: 140px;
+      resize: vertical;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--text-muted);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 1.25rem;
+    }
+
+    /* ============================================
+       📭 空狀態
+    ============================================ */
+    .empty {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--text-hint);
+      font-size: 14px;
+    }
+
+    .empty svg {
+      margin-bottom: 12px;
+      opacity: 0.4;
+    }
+
+    /* ============================================
+       📱 手機版
+    ============================================ */
+    @media (max-width: 480px) {
+      header { padding: 2rem 0 1.2rem; }
+      header h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ============================================
+       ✏️  修改 Blog 名稱與描述
+  ============================================ -->
+  <header>
+    <h1>My Blog</h1>
+    <p class="desc">記錄我的想法與生活</p>
+    <nav>
+      <a class="active">所有文章</a>
+      <a>關於</a>
+    </nav>
+  </header>
+
+  <div class="topbar">
+    <span id="post-count"></span>
+    <button class="btn btn-primary" onclick="openNew()">
+      ＋ 新增文章
+    </button>
+  </div>
+
+  <div class="posts" id="posts-container"></div>
+
+</div>
+
+<!-- 新增 / 編輯 Modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">新增文章</h2>
+    <div class="form-group">
+      <label>標題 *</label>
+      <input type="text" id="f-title" placeholder="文章標題...">
+    </div>
+    <div class="form-group">
+      <label>標籤（可選）</label>
+      <input type="text" id="f-tag" placeholder="例：生活、技術、音樂">
+    </div>
+    <div class="form-group">
+      <label>內容 *</label>
+      <textarea id="f-content" placeholder="寫下你的文章內容..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="savePost()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ============================================
+     💾 文章資料
+     可以直接在這裡預先填入文章：
+     { id: 數字, title: "標題", tag: "標籤", date: "YYYY-MM-DD", content: "內容" }
+  ============================================ */
+  let posts = JSON.parse(localStorage.getItem('blog_posts') || 'null') || [
+    {
+      id: 1,
+      title: "歡迎來到我的 Blog",
+      tag: "公告",
+      date: "2024-06-01",
+      content: "這裡是我記錄生活、分享想法的地方。點右上角「新增文章」就可以開始寫！"
+    }
+  ];
+
+  let editId = null;
+
+  function save() {
+    localStorage.setItem('blog_posts', JSON.stringify(posts));
+  }
+
+  function today() {
+    const d = new Date();
+    return d.getFullYear() + '-'
+      + String(d.getMonth() + 1).padStart(2, '0') + '-'
+      + String(d.getDate()).padStart(2, '0');
+  }
+
+  function render() {
+    const c = document.getElementById('posts-container');
+    const cnt = document.getElementById('post-count');
+    cnt.textContent = posts.length + ' 篇文章';
+
+    if (!posts.length) {
+      c.innerHTML = `
+        <div class="empty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <p>還沒有文章，點右上角新增吧！</p>
+        </div>`;
+      return;
+    }
+
+    c.innerHTML = posts.map(p => `
+      <div class="post-card">
+        <div class="post-meta">
+          ${p.tag ? `<span class="tag">${p.tag}</span>` : ''}
+          <span class="post-date">${p.date}</span>
+        </div>
+        <div class="post-title">${p.title}</div>
+        <div class="post-excerpt">${p.content.slice(0, 160)}${p.content.length > 160 ? '…' : ''}</div>
+        <div class="post-actions">
+          <button class="btn" onclick="openEdit(${p.id})">✏️ 編輯</button>
+          <button class="btn btn-danger" onclick="deletePost(${p.id})">🗑 刪除</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function openNew() {
+    editId = null;
+    document.getElementById('modal-title').textContent = '新增文章';
+    document.getElementById('f-title').value = '';
+    document.getElementById('f-tag').value = '';
+    document.getElementById('f-content').value = '';
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function openEdit(id) {
+    const p = posts.find(x => x.id === id);
+    if (!p) return;
+    editId = id;
+    document.getElementById('modal-title').textContent = '編輯文章';
+    document.getElementById('f-title').value = p.title;
+    document.getElementById('f-tag').value = p.tag || '';
+    document.getElementById('f-content').value = p.content;
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  function savePost() {
+    const t = document.getElementById('f-title').value.trim();
+    const g = document.getElementById('f-tag').value.trim();
+    const c = document.getElementById('f-content').value.trim();
+
+    if (!t || !c) {
+      alert('請填寫標題與內容');
+      return;
+    }
+
+    if (editId) {
+      const p = posts.find(x => x.id === editId);
+      p.title = t; p.tag = g; p.content = c;
+    } else {
+      posts.unshift({ id: Date.now(), title: t, tag: g, date: today(), content: c });
+    }
+
+    save();
+    closeModal();
+    render();
+  }
+
+  function deletePost(id) {
+    if (!confirm('確定要刪除這篇文章嗎？')) return;
+    posts = posts.filter(x => x.id !== id);
+    save();
+    render();
+  }
+
+  // 點背景關閉 modal
+  document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  render();
+</script>
+
+</body>
+</html>
