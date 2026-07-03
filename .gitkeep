@@ -1,0 +1,18 @@
+<!-- 部落格文章存放區 -->
+<!-- 
+在 blogs/ 目錄下新增 .md 文件即可創建新博客：
+- 檔名建議用英文和數字組成，例如 article-1.md, tutorial-js.md  
+- Markdown格式書寫內容後提交到 Git托管平台（如GitHub Pages）
+
+範例文章結構:
+```markdown
+---
+title: "Hello World"
+date: 2026/7/3
+tags: [入門]
+author: admin
+---
+
+這是博客正文...
+```
+-->
